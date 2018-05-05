@@ -1,25 +1,34 @@
 import logging
-import jinja2
 import os
-import urllib2
 
-from flask import Flask, render_template
+from flask import Flask, Blueprint, json
+
+import src
+import vue
+
+from src.api.endpoints.item import ns as items_namespace
+from src.restplus import api
+
+def set_log_level():
+    logging.getLogger().setLevel(logging.INFO)
+
+set_log_level()
 
 app = Flask(__name__)
-app.jinja_loader = jinja2.FileSystemLoader('app/dist')
 
+def create_app(flask_app):
 
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def vue_client(path):
-    if os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine/'):
-        return render_template('index.html')
-    else:
-        url = 'http://localhost:3000/{0}'.format(path)
-        return urllib2.urlopen(url).read()
+    #flask_app.config.from_object(config.get_config())
+    #flask_app.config.from_pyfile('../config.py', silent=True)
 
+    blueprint = Blueprint('s', __name__, url_prefix='/s')
+    #blueprint.before_request(BeforeRequestFlow(oauth_filter=False))
+    api.init_app(blueprint)
+    api.add_namespace(items_namespace)
 
-@app.errorhandler(500)
-def server_error(e):
-    logging.exception('An error occurred during a request.')
-    return 'An internal error occurred.', 500
+    #flask_app.register_blueprint(swgrjson.swaggerjson)
+    #flask_app.register_blueprint(swagger.swagger_bp)
+    flask_app.register_blueprint(blueprint) 
+    flask_app.register_blueprint(vue.vue, url_prefix='')
+
+create_app(app)

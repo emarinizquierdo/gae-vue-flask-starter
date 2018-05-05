@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app">asdfasfd
     <page-wrapper>
       <router-view></router-view>
     </page-wrapper>
